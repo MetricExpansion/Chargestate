@@ -13,6 +13,9 @@
 		ADA2DABB26744DB3000C7501 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA2DABA26744DB3000C7501 /* Preview Assets.xcassets */; };
 		ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DABE26744DB3000C7501 /* Chargestate.xcdatamodeld */; };
 		ADA2DAC726745230000C7501 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAC626745230000C7501 /* AppState.swift */; };
+		ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */; };
+		ADA2DAD22675E307000C7501 /* Plotting.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAD12675E306000C7501 /* Plotting.swift */; };
+		ADA2DAD52675E6AF000C7501 /* SwiftUICharts in Frameworks */ = {isa = PBXBuildFile; productRef = ADA2DAD42675E6AF000C7501 /* SwiftUICharts */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +27,8 @@
 		ADA2DABF26744DB3000C7501 /* Chargestate.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chargestate.xcdatamodel; sourceTree = "<group>"; };
 		ADA2DAC626745230000C7501 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		ADA2DAC826758088000C7501 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualItemEditor.swift; sourceTree = "<group>"; };
+		ADA2DAD12675E306000C7501 /* Plotting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plotting.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADA2DAD52675E6AF000C7501 /* SwiftUICharts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,11 +62,11 @@
 		ADA2DAB226744DB2000C7501 /* Chargestate */ = {
 			isa = PBXGroup;
 			children = (
+				ADA2DAD726767B33000C7501 /* Model */,
+				ADA2DAD626767B0F000C7501 /* GUI */,
 				ADA2DAC826758088000C7501 /* Info.plist */,
 				ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */,
-				ADA2DAB526744DB2000C7501 /* ContentView.swift */,
 				ADA2DAB726744DB3000C7501 /* Assets.xcassets */,
-				ADA2DAC626745230000C7501 /* AppState.swift */,
 				ADA2DABE26744DB3000C7501 /* Chargestate.xcdatamodeld */,
 				ADA2DAB926744DB3000C7501 /* Preview Content */,
 			);
@@ -73,6 +79,24 @@
 				ADA2DABA26744DB3000C7501 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		ADA2DAD626767B0F000C7501 /* GUI */ = {
+			isa = PBXGroup;
+			children = (
+				ADA2DAB526744DB2000C7501 /* ContentView.swift */,
+				ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */,
+				ADA2DAD12675E306000C7501 /* Plotting.swift */,
+			);
+			path = GUI;
+			sourceTree = "<group>";
+		};
+		ADA2DAD726767B33000C7501 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				ADA2DAC626745230000C7501 /* AppState.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -91,6 +115,9 @@
 			dependencies = (
 			);
 			name = Chargestate;
+			packageProductDependencies = (
+				ADA2DAD42675E6AF000C7501 /* SwiftUICharts */,
+			);
 			productName = Chargestate;
 			productReference = ADA2DAB026744DB2000C7501 /* Chargestate.app */;
 			productType = "com.apple.product-type.application";
@@ -119,6 +146,9 @@
 				Base,
 			);
 			mainGroup = ADA2DAA726744DB2000C7501;
+			packageReferences = (
+				ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */,
+			);
 			productRefGroup = ADA2DAB126744DB2000C7501 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -145,8 +175,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADA2DAD22675E307000C7501 /* Plotting.swift in Sources */,
 				ADA2DAC726745230000C7501 /* AppState.swift in Sources */,
 				ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */,
+				ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */,
 				ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */,
 				ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */,
 			);
@@ -361,6 +393,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AppPear/ChartView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		ADA2DAD42675E6AF000C7501 /* SwiftUICharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */;
+			productName = SwiftUICharts;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		ADA2DABE26744DB3000C7501 /* Chargestate.xcdatamodeld */ = {

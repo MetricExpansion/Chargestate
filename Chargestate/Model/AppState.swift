@@ -71,6 +71,8 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         if shouldLoadCalendar {
             loadCalendar()
         }
+        
+        updateItems()
     }
     
     /// Calendar stuff
@@ -93,14 +95,18 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     }
     
     @objc func updateEvents() {
-        async {
-            guard let eventStore = self.eventsStore else { return }
+        asyncDetached {
+            guard let eventStore = await self.eventsStore else { return }
             let cal = Calendar(identifier: .gregorian)
-            let datePred = eventStore.predicateForEvents(withStart: Date(), end: cal.date(byAdding: .year, value: 1, to: Date()) ?? Date(), calendars: nil)
-            calendarItems = eventStore.events(matching: datePred).filter{ $0.structuredLocation != nil }
-            print("EVENTS: ", calendarItems)
-            updateItems()
+            let datePred = eventStore.predicateForEvents(withStart: Date(), end: cal.date(byAdding: .month, value: 1, to: Date()) ?? Date(), calendars: nil)
+            await self.setCalendarItems(eventStore.events(matching: datePred).filter{ $0.structuredLocation != nil })
+            await print("EVENTS: ", calendarItems)
+            await updateItems()
         }
+    }
+    
+    fileprivate func setCalendarItems(_ items: [EKEvent]) {
+        self.calendarItems = items
     }
     
     /// Core Data Store stuff
@@ -121,7 +127,16 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
                 try? self.container.viewContext.save()
             }
         }
-
+    }
+    
+    func add(date: Date) {
+        async {
+            await container.viewContext.perform {
+                let newItem = Item(context: self.container.viewContext)
+                newItem.timestamp = date
+                try? self.container.viewContext.save()
+            }
+        }
     }
     
     /// Algorithm stuff
@@ -137,6 +152,26 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         return list
     }
     
+    var chargeControlRanges: [DateInterval] {
+        let idleToTravelTime = (travelChargeLevel - idleChargeLevel) / (chargeRate) * 60 * 60
+        let intervals = items.map{ $0.date }.map{ DateInterval(start: $0.addingTimeInterval(-idleToTravelTime), end: $0) }
+        var timepoints = intervals.map{ $0.start.addingTimeInterval(-1) } + intervals.map{ $0.start.addingTimeInterval(1) } +
+                         intervals.map{ $0.end.addingTimeInterval(-1) } + intervals.map{ $0.end.addingTimeInterval(1) }
+        timepoints.sort()
+        let timepointLoadings = timepoints.map{ time in (time, intervals.filter{ date in date.contains(time) }.count) }
+        let controlPoints = timepointLoadings
+            .split{ $0.1 == 0 }
+            .filter{ !$0.isEmpty }
+            .map{ DateInterval(start: $0.first!.0, end: $0.last!.0) }
+        return controlPoints
+    }
+
+    var chargeControlPoints: [ChargeControlPoint] {
+        return chargeControlRanges
+            .map{ [ChargeControlPoint(date: $0.start, chargeLimit: travelChargeLevel, charging: true), ChargeControlPoint(date: $0.end, chargeLimit: idleChargeLevel, charging: false)] }
+            .joined()
+            .map{ $0 }
+    }
     
     let container: NSPersistentContainer
     var eventsStore: EKEventStore?
@@ -148,7 +183,19 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     var fetchReqCont: NSFetchedResultsController<Item>
     
     /// Helper stuff
+    let chargeRate = 0.05 // TODO: This is percent charing per hour. Do it better later.
+    let idleChargeLevel = 0.80 // TODO: This is percent charing per hour. Do it better later.
+    let travelChargeLevel = 0.90 // TODO: This is percent charing per hour. Do it better later.
+
 }
+
+struct ChargeControlPoint {
+    let date: Date
+    let chargeLimit: Double
+    let charging: Bool
+}
+
+// MARK: ChargeTime
 
 enum ChargeTime: Equatable {
     case manual(Item)
@@ -170,6 +217,19 @@ enum ChargeTime: Equatable {
     }
 }
 
+extension ChargeTime: Identifiable {
+    var id: String {
+        switch self {
+        case .manual(let item):
+            return "\(item.objectID.uriRepresentation())"
+        case .calendar(let item):
+            return item.calendarItemIdentifier
+        }
+    }
+}
+
+// MARK: ChargeTimeSection
+
 struct ChargeTimeSection: Equatable, Identifiable {
     let day: DateComponents
     let chargeTimes: [ChargeTime]
@@ -182,14 +242,3 @@ struct ChargeTimeSection: Equatable, Identifiable {
 
 }
 
-
-extension ChargeTime: Identifiable {
-    var id: String {
-        switch self {
-        case .manual(let item):
-            return "\(item.objectID.uriRepresentation())"
-        case .calendar(let item):
-            return item.calendarItemIdentifier
-        }
-    }
-}

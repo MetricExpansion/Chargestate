@@ -15,6 +15,7 @@ struct ChargestateApp: App {
         WindowGroup {
             NavigationView {
                 ContentView(appState: appState)
+                    .accentColor(.green)
             }
         }
     }
