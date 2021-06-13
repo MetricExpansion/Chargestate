@@ -11,8 +11,8 @@
 		ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAB526744DB2000C7501 /* ContentView.swift */; };
 		ADA2DAB826744DB3000C7501 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA2DAB726744DB3000C7501 /* Assets.xcassets */; };
 		ADA2DABB26744DB3000C7501 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA2DABA26744DB3000C7501 /* Preview Assets.xcassets */; };
-		ADA2DABD26744DB3000C7501 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DABC26744DB3000C7501 /* Persistence.swift */; };
 		ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DABE26744DB3000C7501 /* Chargestate.xcdatamodeld */; };
+		ADA2DAC726745230000C7501 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAC626745230000C7501 /* AppState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,8 +21,9 @@
 		ADA2DAB526744DB2000C7501 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ADA2DAB726744DB3000C7501 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ADA2DABA26744DB3000C7501 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		ADA2DABC26744DB3000C7501 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		ADA2DABF26744DB3000C7501 /* Chargestate.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chargestate.xcdatamodel; sourceTree = "<group>"; };
+		ADA2DAC626745230000C7501 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		ADA2DAC826758088000C7501 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,10 +56,11 @@
 		ADA2DAB226744DB2000C7501 /* Chargestate */ = {
 			isa = PBXGroup;
 			children = (
+				ADA2DAC826758088000C7501 /* Info.plist */,
 				ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */,
 				ADA2DAB526744DB2000C7501 /* ContentView.swift */,
 				ADA2DAB726744DB3000C7501 /* Assets.xcassets */,
-				ADA2DABC26744DB3000C7501 /* Persistence.swift */,
+				ADA2DAC626745230000C7501 /* AppState.swift */,
 				ADA2DABE26744DB3000C7501 /* Chargestate.xcdatamodeld */,
 				ADA2DAB926744DB3000C7501 /* Preview Content */,
 			);
@@ -143,7 +145,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ADA2DABD26744DB3000C7501 /* Persistence.swift in Sources */,
+				ADA2DAC726745230000C7501 /* AppState.swift in Sources */,
 				ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */,
 				ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */,
 				ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */,
@@ -280,12 +282,16 @@
 				DEVELOPMENT_TEAM = TXD2Y3UWBY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Chargestate/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Chargestate;
+				INFOPLIST_KEY_CFBundleName = Chargestate;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -310,12 +316,16 @@
 				DEVELOPMENT_TEAM = TXD2Y3UWBY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Chargestate/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Chargestate;
+				INFOPLIST_KEY_CFBundleName = Chargestate;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

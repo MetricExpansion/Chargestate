@@ -9,12 +9,13 @@ import SwiftUI
 
 @main
 struct ChargestateApp: App {
-    let persistenceController = PersistenceController.shared
-
+    @StateObject var appState = AppState(loadCalendar: true)
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            NavigationView {
+                ContentView(appState: appState)
+            }
         }
     }
 }
