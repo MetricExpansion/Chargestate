@@ -11,8 +11,9 @@ import EventKit
 import SwiftUICharts
 
 struct ContentView: View {
-    @StateObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @State var showingAddSheet: Bool = false
+    @State var showingSettingsSheet: Bool = false
     
     var body: some View {
         VStack {
@@ -42,11 +43,19 @@ struct ContentView: View {
                 }
             }
             .animation(appState.items.isEmpty ? .none : .default, value: appState.items)
-            .navigationBarItems(leading: EditButton(), trailing: Button(action: {
+            .navigationBarItems(leading: HStack {
+                EditButton()
+                    .padding(.trailing)
+                Button(action: {
+                    showingSettingsSheet = true
+                }) {
+                    Image(systemName: "gear")
+                }
+            }, trailing: Button(action: {
                 showingAddSheet = true
             }) {
                 Label("Add Item", systemImage: "plus")
-            })
+            }.buttonStyle(.bordered))
         .navigationTitle("Chargestate")
         }
         .sheet(isPresented: $showingAddSheet, onDismiss: {}) {
@@ -60,6 +69,11 @@ struct ContentView: View {
                         print("Failed to save!")
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $showingSettingsSheet, onDismiss: {}) {
+            NavigationView {
+                Settings(onFinish: { showingSettingsSheet = false })
             }
         }
     }
@@ -155,8 +169,9 @@ struct ContentView_Previews: PreviewProvider {
     static var appState = AppState.preview
     static var previews: some View {
         NavigationView {
-            ContentView(appState: appState)
+            ContentView()
         }
-        .environment(\.colorScheme, .dark)
+        .environmentObject(appState)
+//        .environment(\.colorScheme, .dark)
     }
 }

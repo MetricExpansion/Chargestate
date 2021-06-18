@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AD663865267B0A7300C6A340 /* TeslaAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663864267B0A7300C6A340 /* TeslaAPI.swift */; };
+		AD663868267B0BF800C6A340 /* UtilFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663867267B0BF800C6A340 /* UtilFunctions.swift */; };
+		AD66386C267B1DC100C6A340 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66386B267B1DC100C6A340 /* Settings.swift */; };
 		ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */; };
 		ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAB526744DB2000C7501 /* ContentView.swift */; };
 		ADA2DAB826744DB3000C7501 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA2DAB726744DB3000C7501 /* Assets.xcassets */; };
@@ -16,9 +19,13 @@
 		ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */; };
 		ADA2DAD22675E307000C7501 /* Plotting.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAD12675E306000C7501 /* Plotting.swift */; };
 		ADA2DAD52675E6AF000C7501 /* SwiftUICharts in Frameworks */ = {isa = PBXBuildFile; productRef = ADA2DAD42675E6AF000C7501 /* SwiftUICharts */; };
+		ADF474F0267D3EC400F74A91 /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = ADF474EF267D3EC400F74A91 /* KeychainSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AD663864267B0A7300C6A340 /* TeslaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaAPI.swift; sourceTree = "<group>"; };
+		AD663867267B0BF800C6A340 /* UtilFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilFunctions.swift; sourceTree = "<group>"; };
+		AD66386B267B1DC100C6A340 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		ADA2DAB026744DB2000C7501 /* Chargestate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chargestate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargestateApp.swift; sourceTree = "<group>"; };
 		ADA2DAB526744DB2000C7501 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -36,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADF474F0267D3EC400F74A91 /* KeychainSwift in Frameworks */,
 				ADA2DAD52675E6AF000C7501 /* SwiftUICharts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -43,6 +51,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AD663866267B0BEB00C6A340 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				AD663867267B0BF800C6A340 /* UtilFunctions.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		ADA2DAA726744DB2000C7501 = {
 			isa = PBXGroup;
 			children = (
@@ -62,6 +78,7 @@
 		ADA2DAB226744DB2000C7501 /* Chargestate */ = {
 			isa = PBXGroup;
 			children = (
+				AD663866267B0BEB00C6A340 /* Helpers */,
 				ADA2DAD726767B33000C7501 /* Model */,
 				ADA2DAD626767B0F000C7501 /* GUI */,
 				ADA2DAC826758088000C7501 /* Info.plist */,
@@ -87,6 +104,7 @@
 				ADA2DAB526744DB2000C7501 /* ContentView.swift */,
 				ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */,
 				ADA2DAD12675E306000C7501 /* Plotting.swift */,
+				AD66386B267B1DC100C6A340 /* Settings.swift */,
 			);
 			path = GUI;
 			sourceTree = "<group>";
@@ -95,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				ADA2DAC626745230000C7501 /* AppState.swift */,
+				AD663864267B0A7300C6A340 /* TeslaAPI.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -117,6 +136,7 @@
 			name = Chargestate;
 			packageProductDependencies = (
 				ADA2DAD42675E6AF000C7501 /* SwiftUICharts */,
+				ADF474EF267D3EC400F74A91 /* KeychainSwift */,
 			);
 			productName = Chargestate;
 			productReference = ADA2DAB026744DB2000C7501 /* Chargestate.app */;
@@ -148,6 +168,7 @@
 			mainGroup = ADA2DAA726744DB2000C7501;
 			packageReferences = (
 				ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */,
+				ADF474EE267D3EC400F74A91 /* XCRemoteSwiftPackageReference "keychain-swift" */,
 			);
 			productRefGroup = ADA2DAB126744DB2000C7501 /* Products */;
 			projectDirPath = "";
@@ -179,6 +200,9 @@
 				ADA2DAC726745230000C7501 /* AppState.swift in Sources */,
 				ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */,
 				ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */,
+				AD663865267B0A7300C6A340 /* TeslaAPI.swift in Sources */,
+				AD663868267B0BF800C6A340 /* UtilFunctions.swift in Sources */,
+				AD66386C267B1DC100C6A340 /* Settings.swift in Sources */,
 				ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */,
 				ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */,
 			);
@@ -403,6 +427,14 @@
 				minimumVersion = 1.5.5;
 			};
 		};
+		ADF474EE267D3EC400F74A91 /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/evgenyneu/keychain-swift.git";
+			requirement = {
+				kind = revision;
+				revision = e538f8bb0434c70d27b25ca72bec96735183c037;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -410,6 +442,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */;
 			productName = SwiftUICharts;
+		};
+		ADF474EF267D3EC400F74A91 /* KeychainSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADF474EE267D3EC400F74A91 /* XCRemoteSwiftPackageReference "keychain-swift" */;
+			productName = KeychainSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 

@@ -9,7 +9,11 @@ import Foundation
 import CoreData
 import EventKit
 import Combine
+import KeychainSwift
 
+// MARK: AppState
+
+/// A model for the entire app state.
 @MainActor
 class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     /// Preview struct used for SwiftUI. Contains 10 sample items.
@@ -65,9 +69,27 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         try! fetchReqCont.performFetch()
         manualItems = fetchReqCont.fetchedObjects ?? []
         
+        self.teslaApi = TeslaSession(token: keychain.get("teslafi_api_token"))
+        
+        self.userConfig = UserConfig(
+            chargeRate: UserDefaults.standard.optionalDouble(forKey: "userConfig_chargeRate") ?? 0.04,
+            idleChargeLevel: UserDefaults.standard.optionalDouble(forKey: "userConfig_idleChargeLevel") ?? 0.80,
+            travelChargeLevel: UserDefaults.standard.optionalDouble(forKey: "userConfig_travelChargeLevel") ?? 0.90)
+        
         super.init()
         fetchReqCont.delegate = self
-        
+        teslaApiSubscription = self.teslaApi.$token.dropFirst().sink {  [weak self] newValue in
+            if let newValue = newValue {
+                self?.keychain.set(newValue, forKey: "teslafi_api_token", withAccess: .accessibleAfterFirstUnlock)
+            } else {
+                self?.keychain.delete("teslafi_api_token")
+            }
+        }
+        userConfigSubscription = $userConfig.sink{ v in
+            print("New UserSetting: \(v)")
+        }
+
+
         if shouldLoadCalendar {
             loadCalendar()
         }
@@ -152,8 +174,9 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         return list
     }
     
-    var chargeControlRanges: [DateInterval] {
-        let idleToTravelTime = (travelChargeLevel - idleChargeLevel) / (chargeRate) * 60 * 60
+    var chargeControlRanges: [DateInterval]? {
+        let idleToTravelTime = (userConfig.travelChargeLevel - userConfig.idleChargeLevel) / (userConfig.chargeRate) * 60 * 60
+        if idleToTravelTime < 0 { return nil }
         let intervals = items.map{ $0.date }.map{ DateInterval(start: $0.addingTimeInterval(-idleToTravelTime), end: $0) }
         var timepoints = intervals.map{ $0.start.addingTimeInterval(-1) } + intervals.map{ $0.start.addingTimeInterval(1) } +
                          intervals.map{ $0.end.addingTimeInterval(-1) } + intervals.map{ $0.end.addingTimeInterval(1) }
@@ -166,15 +189,24 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         return controlPoints
     }
 
-    var chargeControlPoints: [ChargeControlPoint] {
-        return chargeControlRanges
-            .map{ [ChargeControlPoint(date: $0.start, chargeLimit: travelChargeLevel, charging: true), ChargeControlPoint(date: $0.end, chargeLimit: idleChargeLevel, charging: false)] }
+    var chargeControlPoints: [ChargeControlPoint]? {
+        if chargeControlRanges == nil { return nil }
+        return chargeControlRanges!
+            .map{ [ChargeControlPoint(date: $0.start, chargeLimit: userConfig.travelChargeLevel, charging: true), ChargeControlPoint(date: $0.end, chargeLimit: userConfig.idleChargeLevel, charging: false)] }
             .joined()
             .map{ $0 }
     }
     
+    let keychain: KeychainSwift = {
+        let k = KeychainSwift(keyPrefix: "AppState_")
+        k.synchronizable = true
+        return k
+    }()
+    
     let container: NSPersistentContainer
     var eventsStore: EKEventStore?
+    let teslaApi: TeslaSession
+    var teslaApiSubscription: AnyCancellable?
 
     @Published var items: [ChargeTime] = []
     var calendarItems: [EKEvent] = []
@@ -183,11 +215,12 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     var fetchReqCont: NSFetchedResultsController<Item>
     
     /// Helper stuff
-    let chargeRate = 0.05 // TODO: This is percent charing per hour. Do it better later.
-    let idleChargeLevel = 0.80 // TODO: This is percent charing per hour. Do it better later.
-    let travelChargeLevel = 0.90 // TODO: This is percent charing per hour. Do it better later.
-
+    @Published var userConfig: UserConfig
+    var userConfigSubscription: AnyCancellable?
 }
+
+// MARK: ChargeControlPoint
+
 
 struct ChargeControlPoint {
     let date: Date
@@ -242,3 +275,21 @@ struct ChargeTimeSection: Equatable, Identifiable {
 
 }
 
+// MARK: UserConfig
+
+struct UserConfig: Codable {
+    static let defaultValues = UserConfig(chargeRate: 0.04, idleChargeLevel: 0.80, travelChargeLevel: 0.90)
+    
+    var chargeRate: Double
+    var idleChargeLevel: Double
+    var travelChargeLevel: Double
+}
+
+// MARK: Extension to UserDefaults
+
+extension UserDefaults {
+    func optionalDouble(forKey: String) -> Double? {
+        let v = self.double(forKey: forKey)
+        if v == 0 { return nil } else { return v }
+    }
+}

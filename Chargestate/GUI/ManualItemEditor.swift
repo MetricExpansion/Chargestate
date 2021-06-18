@@ -46,7 +46,7 @@ struct ManualItemEditor_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             ManualItemEditor(date: Date(), showing: .constant(true)) { date in
-                
+
             }
         }
     }
