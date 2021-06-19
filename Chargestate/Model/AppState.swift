@@ -87,6 +87,9 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         }
         userConfigSubscription = $userConfig.sink{ v in
             print("New UserSetting: \(v)")
+            UserDefaults.standard.set(v.chargeRate, forKey: "userConfig_chargeRate")
+            UserDefaults.standard.set(v.idleChargeLevel, forKey: "userConfig_idleChargeLevel")
+            UserDefaults.standard.set(v.travelChargeLevel, forKey: "userConfig_travelChargeLevel")
         }
 
 

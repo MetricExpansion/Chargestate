@@ -11,6 +11,7 @@ class TeslaSession: ObservableObject {
 
     @Published var token: String?
     @Published var currentSelectedSoc: Int?
+    @Published var requestInFlight: Bool = false
     
     init() {
     }
@@ -28,9 +29,22 @@ class TeslaSession: ObservableObject {
     }
     
     func setChargeLimit(percent: Int) async throws {
+        requestInFlight = true
+        defer { requestInFlight = false }
+        print("Set charge requested")
+        guard let req = getCommandRequest(command: "set_charge_limit&charge_limit_soc=\(percent)", wakeVehicle: true) else {
+            throw NoCredentialsFailure()
+        }
+        let (data, response) = try await URLSession.shared.data(for: req)
+        if (response as! HTTPURLResponse).statusCode != 200 {
+            print("\(String(describing: String(data: data, encoding: .utf8)))")
+            throw ServerDidNotAccept()
+        }
     }
     
     func getVehicleState() async throws {
+        requestInFlight = true
+        defer { requestInFlight = false }
         print("Refresh requested")
         guard let req = getCommandRequest(command: "lastGood") else {
             throw NoCredentialsFailure()
@@ -39,7 +53,6 @@ class TeslaSession: ObservableObject {
         let tfdata = try jsonDecoder.decode(TeslaFiAPIData.self, from: data)
         currentSelectedSoc = Int(tfdata.chargeLimitSoc ?? "") ?? currentSelectedSoc
     }
-
     
     fileprivate func getCommandRequest(command: String, wakeVehicle: Bool = false) -> URLRequest? {
         guard let token = self.token else { return nil }
@@ -69,3 +82,4 @@ struct TeslaFiAPIData: Codable {
 struct NoCredentialsFailure: Error {}
 struct LoginFailure: Error {}
 struct DecodeFailure: Error {}
+struct ServerDidNotAccept: Error {}

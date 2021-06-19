@@ -54,8 +54,10 @@ struct ContentView: View {
             }, trailing: Button(action: {
                 showingAddSheet = true
             }) {
-                Label("Add Item", systemImage: "plus")
-            }.buttonStyle(.bordered))
+                Image(systemName: "plus")
+                Text("Add")
+            }
+            .buttonStyle(.bordered))
         .navigationTitle("Chargestate")
         }
         .sheet(isPresented: $showingAddSheet, onDismiss: {}) {
@@ -70,11 +72,13 @@ struct ContentView: View {
                     }
                 }
             }
+            .accentColor(.green)
         }
         .sheet(isPresented: $showingSettingsSheet, onDismiss: {}) {
             NavigationView {
                 Settings(onFinish: { showingSettingsSheet = false })
             }
+            .accentColor(.green)
         }
     }
 
