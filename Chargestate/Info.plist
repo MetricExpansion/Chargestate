@@ -6,5 +6,9 @@
 	<true/>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Used to help schedule charging ahead of calendar events.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

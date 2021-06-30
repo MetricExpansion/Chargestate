@@ -182,7 +182,7 @@ struct LoginField: View {
                         .onAppear {
                             token = teslaApi.token ?? ""
                         }
-                        .onChange(of: token) { token in
+                        .onDisappear {
                             if token != "" {
                                 teslaApi.token = token
                             } else {

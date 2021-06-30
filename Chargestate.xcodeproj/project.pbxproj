@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AD139CB7268960AF00EAA27A /* AWSCore in Frameworks */ = {isa = PBXBuildFile; productRef = AD139CB6268960AF00EAA27A /* AWSCore */; };
+		AD139CB9268960AF00EAA27A /* AWSLambda in Frameworks */ = {isa = PBXBuildFile; productRef = AD139CB8268960AF00EAA27A /* AWSLambda */; };
+		AD139CBB268960AF00EAA27A /* AWSSNS in Frameworks */ = {isa = PBXBuildFile; productRef = AD139CBA268960AF00EAA27A /* AWSSNS */; };
+		AD139CBD268ACD0700EAA27A /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD139CBC268ACD0700EAA27A /* CalendarManager.swift */; };
+		AD1CD7622686F3FE00C758E8 /* AWSAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1CD7612686F3FE00C758E8 /* AWSAPI.swift */; };
 		AD663865267B0A7300C6A340 /* TeslaAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663864267B0A7300C6A340 /* TeslaAPI.swift */; };
 		AD663868267B0BF800C6A340 /* UtilFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663867267B0BF800C6A340 /* UtilFunctions.swift */; };
 		AD66386C267B1DC100C6A340 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66386B267B1DC100C6A340 /* Settings.swift */; };
@@ -23,6 +28,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AD139CBC268ACD0700EAA27A /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
+		AD1CD7612686F3FE00C758E8 /* AWSAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSAPI.swift; sourceTree = "<group>"; };
+		AD1CD7632686F56000C758E8 /* Chargestate.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Chargestate.entitlements; sourceTree = "<group>"; };
 		AD663864267B0A7300C6A340 /* TeslaAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaAPI.swift; sourceTree = "<group>"; };
 		AD663867267B0BF800C6A340 /* UtilFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilFunctions.swift; sourceTree = "<group>"; };
 		AD66386B267B1DC100C6A340 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -43,6 +51,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD139CBB268960AF00EAA27A /* AWSSNS in Frameworks */,
+				AD139CB7268960AF00EAA27A /* AWSCore in Frameworks */,
+				AD139CB9268960AF00EAA27A /* AWSLambda in Frameworks */,
 				ADF474F0267D3EC400F74A91 /* KeychainSwift in Frameworks */,
 				ADA2DAD52675E6AF000C7501 /* SwiftUICharts in Frameworks */,
 			);
@@ -78,6 +89,7 @@
 		ADA2DAB226744DB2000C7501 /* Chargestate */ = {
 			isa = PBXGroup;
 			children = (
+				AD1CD7632686F56000C758E8 /* Chargestate.entitlements */,
 				AD663866267B0BEB00C6A340 /* Helpers */,
 				ADA2DAD726767B33000C7501 /* Model */,
 				ADA2DAD626767B0F000C7501 /* GUI */,
@@ -114,6 +126,8 @@
 			children = (
 				ADA2DAC626745230000C7501 /* AppState.swift */,
 				AD663864267B0A7300C6A340 /* TeslaAPI.swift */,
+				AD1CD7612686F3FE00C758E8 /* AWSAPI.swift */,
+				AD139CBC268ACD0700EAA27A /* CalendarManager.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -137,6 +151,9 @@
 			packageProductDependencies = (
 				ADA2DAD42675E6AF000C7501 /* SwiftUICharts */,
 				ADF474EF267D3EC400F74A91 /* KeychainSwift */,
+				AD139CB6268960AF00EAA27A /* AWSCore */,
+				AD139CB8268960AF00EAA27A /* AWSLambda */,
+				AD139CBA268960AF00EAA27A /* AWSSNS */,
 			);
 			productName = Chargestate;
 			productReference = ADA2DAB026744DB2000C7501 /* Chargestate.app */;
@@ -169,6 +186,7 @@
 			packageReferences = (
 				ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */,
 				ADF474EE267D3EC400F74A91 /* XCRemoteSwiftPackageReference "keychain-swift" */,
+				AD139CB5268960AF00EAA27A /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */,
 			);
 			productRefGroup = ADA2DAB126744DB2000C7501 /* Products */;
 			projectDirPath = "";
@@ -201,9 +219,11 @@
 				ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */,
 				ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */,
 				AD663865267B0A7300C6A340 /* TeslaAPI.swift in Sources */,
+				AD139CBD268ACD0700EAA27A /* CalendarManager.swift in Sources */,
 				AD663868267B0BF800C6A340 /* UtilFunctions.swift in Sources */,
 				AD66386C267B1DC100C6A340 /* Settings.swift in Sources */,
 				ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */,
+				AD1CD7622686F3FE00C758E8 /* AWSAPI.swift in Sources */,
 				ADA2DAC026744DB3000C7501 /* Chargestate.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -332,10 +352,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Chargestate/Chargestate.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Chargestate/Preview Content\"";
-				DEVELOPMENT_TEAM = TXD2Y3UWBY;
+				DEVELOPMENT_TEAM = T9TK8ZB74W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Chargestate/Info.plist;
@@ -366,10 +387,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Chargestate/Chargestate.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Chargestate/Preview Content\"";
-				DEVELOPMENT_TEAM = TXD2Y3UWBY;
+				DEVELOPMENT_TEAM = T9TK8ZB74W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Chargestate/Info.plist;
@@ -419,6 +441,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		AD139CB5268960AF00EAA27A /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/aws-sdk-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/AppPear/ChartView";
@@ -438,6 +468,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		AD139CB6268960AF00EAA27A /* AWSCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD139CB5268960AF00EAA27A /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */;
+			productName = AWSCore;
+		};
+		AD139CB8268960AF00EAA27A /* AWSLambda */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD139CB5268960AF00EAA27A /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */;
+			productName = AWSLambda;
+		};
+		AD139CBA268960AF00EAA27A /* AWSSNS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD139CB5268960AF00EAA27A /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */;
+			productName = AWSSNS;
+		};
 		ADA2DAD42675E6AF000C7501 /* SwiftUICharts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ADA2DAD32675E6AF000C7501 /* XCRemoteSwiftPackageReference "ChartView" */;

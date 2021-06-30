@@ -80,6 +80,12 @@ struct ContentView: View {
             }
             .accentColor(.green)
         }
+        .onAppear{
+            async {
+                await appState.aws.preparePushNotifications()
+//                await appState.aws.schedulePushNotification(atDate: Date().addingTimeInterval(15))
+            }
+        }
     }
 
     private func addItem() {

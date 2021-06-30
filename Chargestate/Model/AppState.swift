@@ -35,7 +35,8 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         return result
     }
 
-    init(inMemory: Bool = false, loadCalendar shouldLoadCalendar: Bool = false) {
+    init(inMemory: Bool = false) {
+        let decoder = JSONDecoder()
         /// Setup persistent container.
         container = NSPersistentContainer(name: "Chargestate")
         if inMemory {
@@ -61,6 +62,8 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
 
         let fetchReq = NSFetchRequest<Item>(entityName: "Item")
         fetchReq.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+        let cutoff = Date().addingTimeInterval(-60*60)
+        fetchReq.predicate = NSPredicate(format: "timestamp > %@", cutoff as NSDate)
         self.fetchReqCont = NSFetchedResultsController(
             fetchRequest: fetchReq,
             managedObjectContext: container.viewContext,
@@ -68,7 +71,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         
         try! fetchReqCont.performFetch()
         manualItems = fetchReqCont.fetchedObjects ?? []
-        
+                
         self.teslaApi = TeslaSession(token: keychain.get("teslafi_api_token"))
         
         self.userConfig = UserConfig(
@@ -76,62 +79,110 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             idleChargeLevel: UserDefaults.standard.optionalDouble(forKey: "userConfig_idleChargeLevel") ?? 0.80,
             travelChargeLevel: UserDefaults.standard.optionalDouble(forKey: "userConfig_travelChargeLevel") ?? 0.90)
         
+        if let data = UserDefaults.standard.data(forKey: "aws_coded"), let aws = try? decoder.decode(AWSAPI.self, from: data) {
+            self.aws = aws
+        } else {
+            self.aws = AWSAPI()
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: "enabled_calendars") {
+            enabledCalendars = (try? decoder.decode([String].self, from: data)) ?? []
+        } else {
+            enabledCalendars = []
+        }
+
+        
+        self.calendarManager = CalendarManager()
+
         super.init()
         fetchReqCont.delegate = self
-        teslaApiSubscription = self.teslaApi.$token.dropFirst().sink {  [weak self] newValue in
+        let teslaApiKeyPublisher = self.teslaApi.$token
+        teslaApiSubscription = teslaApiKeyPublisher.dropFirst().sink {  [weak self] newValue in
             if let newValue = newValue {
                 self?.keychain.set(newValue, forKey: "teslafi_api_token", withAccess: .accessibleAfterFirstUnlock)
             } else {
                 self?.keychain.delete("teslafi_api_token")
             }
         }
-        userConfigSubscription = $userConfig.sink{ v in
+        
+        userConfigSubscription = $userConfig.dropFirst().sink{ v in
             print("New UserSetting: \(v)")
             UserDefaults.standard.set(v.chargeRate, forKey: "userConfig_chargeRate")
             UserDefaults.standard.set(v.idleChargeLevel, forKey: "userConfig_idleChargeLevel")
             UserDefaults.standard.set(v.travelChargeLevel, forKey: "userConfig_travelChargeLevel")
         }
-
-
-        if shouldLoadCalendar {
-            loadCalendar()
+        
+        calendarUpdateTask = asyncDetached(priority: .background) { [weak self] in
+            await self?.setCalendarItems(await calendarManager.getCalendarEvents(calendars: self?.enabledCalendars) ?? [])
+            let seq = await calendarManager.getCalendarSequence();
+            do {
+                for try await _ in seq {
+                    await self?.setCalendarItems(await calendarManager.getCalendarEvents(calendars: self?.enabledCalendars) ?? [])
+                }
+            } catch {
+                print("Calendar update loop has failed \(error)")
+            }
         }
         
-        updateItems()
-    }
-    
-    /// Calendar stuff
-    func loadCalendar() {
-        self.eventsStore = EKEventStore()
-        eventsStore?.requestAccess(to: .event) { granted, error in
-            guard let eventStore = self.eventsStore else { return }
-            if !granted {
-                async {
-                    self.eventsStore = nil
-                }
-            } else {
-                // Configure calendar stuff
-                async {
-                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateEvents), name: .EKEventStoreChanged, object: eventStore)
-                    self.updateEvents()
+        chargeScheduleSubscription = self.$items.combineLatest(self.$userConfig, teslaApiKeyPublisher).debounce(for: .seconds(5), scheduler: RunLoop.current).sink{ [weak self] x in
+            print("Checking to see if new schedule needs to be sent.")
+            async { [weak self] in
+                do {
+                    switch try await self?.submitSchedule() {
+                    case .ignored:
+                        print("Schedule request ignored.")
+                    case .scheduled:
+                        print("Schedule request was accepted.")
+                    case .none:
+                        print("Schedule request ignored because AppState instance is missing. This should not happen.")
+                    }
+                } catch {
+                    print("Failed to schedule due to \(error).")
                 }
             }
         }
+
+        updateItems()
+        
+        self.cleanupOldManualItems()
     }
     
-    @objc func updateEvents() {
-        asyncDetached {
-            guard let eventStore = await self.eventsStore else { return }
-            let cal = Calendar(identifier: .gregorian)
-            let datePred = eventStore.predicateForEvents(withStart: Date(), end: cal.date(byAdding: .month, value: 1, to: Date()) ?? Date(), calendars: nil)
-            await self.setCalendarItems(eventStore.events(matching: datePred).filter{ $0.structuredLocation != nil })
-            await print("EVENTS: ", calendarItems)
-            await updateItems()
-        }
+    deinit {
+        calendarUpdateTask?.cancel()
+    }
+    
+    func saveData() {
+        aws.saveTo(userDefaults: UserDefaults.standard, key: "aws_coded")
+    }
+    
+    /// Calendar stuff
+    func loadCalendar() async {
+        self.setCalendarItems(await calendarManager.getCalendarEvents(calendars: self.enabledCalendars) ?? [])
     }
     
     fileprivate func setCalendarItems(_ items: [EKEvent]) {
         self.calendarItems = items
+        updateItems()
+    }
+    
+    func cleanupOldManualItems() {
+        let fetchReq = NSFetchRequest<Item>(entityName: "Item")
+        fetchReq.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+        let cutoff = Date().addingTimeInterval(-60*60)
+        fetchReq.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
+        let fetchReqCont = NSFetchedResultsController(
+            fetchRequest: fetchReq,
+            managedObjectContext: container.viewContext,
+            sectionNameKeyPath: nil, cacheName: nil)
+        do {
+            try fetchReqCont.performFetch()
+            for object in fetchReqCont.fetchedObjects ?? [] {
+                container.viewContext.delete(object)
+            }
+            try container.viewContext.save()
+        } catch {
+            print("Cannot cleanup old items \(error)")
+        }
     }
     
     /// Core Data Store stuff
@@ -166,7 +217,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     
     /// Algorithm stuff
     func updateItems() {
-        var items: [ChargeTime] = calendarItems.map{ .calendar($0) } + manualItems.map{ .manual($0) }
+        var items: [ChargeTime] = (calendarItems ?? []).map{ .calendar($0) } + manualItems.map{ .manual($0) }
         items.sort{ $0.date < $1.date }
         self.items = items
     }
@@ -193,11 +244,18 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     }
 
     var chargeControlPoints: [ChargeControlPoint]? {
-        if chargeControlRanges == nil { return nil }
-        return chargeControlRanges!
+        guard let chargeControlRanges = self.chargeControlRanges else { return nil }
+        return chargeControlRanges
             .map{ [ChargeControlPoint(date: $0.start, chargeLimit: userConfig.travelChargeLevel, charging: true), ChargeControlPoint(date: $0.end, chargeLimit: userConfig.idleChargeLevel, charging: false)] }
             .joined()
             .map{ $0 }
+    }
+    
+    func submitSchedule() async throws -> ScheduleStatus {
+        guard let token = teslaApi.token, let pts = self.chargeControlPoints, self.calendarItems != nil else { return .ignored }
+        let result =  try await aws.schedulePushNotification(controlPoints: pts, teslafiToken: token)
+        self.saveData()
+        return result
     }
     
     let keychain: KeychainSwift = {
@@ -207,13 +265,21 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     }()
     
     let container: NSPersistentContainer
-    var eventsStore: EKEventStore?
+    var calendarManager: CalendarManager
+    var calendarUpdateTask: Task.Handle<(), Never>?
+    @Published var enabledCalendars: [String]
+    
     let teslaApi: TeslaSession
     var teslaApiSubscription: AnyCancellable?
 
     @Published var items: [ChargeTime] = []
-    var calendarItems: [EKEvent] = []
+    var calendarItems: [EKEvent]?
     var manualItems: [Item] = []
+    var chargeScheduleSubscription: AnyCancellable?
+    
+    var aws: AWSAPI
+//    var awsEndpointSubscription: AnyCancellable?
+//    var awsPushInfoSubscription: AnyCancellable?
 
     var fetchReqCont: NSFetchedResultsController<Item>
     
@@ -222,10 +288,17 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     var userConfigSubscription: AnyCancellable?
 }
 
+// MARK: SubmissionStatus
+
+enum JobSubmissionStatus {
+    case notTried
+    case submitted
+    case failed
+}
+
 // MARK: ChargeControlPoint
 
-
-struct ChargeControlPoint {
+struct ChargeControlPoint: Hashable {
     let date: Date
     let chargeLimit: Double
     let charging: Bool

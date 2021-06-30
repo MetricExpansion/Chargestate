@@ -19,13 +19,13 @@ struct ManualItemEditor: View {
             VStack {
                 DatePicker(
                      selection: $date,
+                     in: Date()...,
                      displayedComponents: [.date, .hourAndMinute]
                 ) {
                 }
             }
         }
         .listStyle(.automatic)
-        
         .datePickerStyle(.graphical)
         .navigationTitle("Editing")
         .navigationBarItems(leading: Button(action: {
