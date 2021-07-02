@@ -67,7 +67,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        print("Got a background notification: \(userInfo)")
-        completionHandler(.noData)
+        print("Got a notification: \(userInfo)")
+        if
+            let aps = userInfo["aps"] as? [String: Any],
+            let ca = aps["content-available"] as? Int,
+            ca == 1 {
+            print("Got a background notification")
+            async {
+                await appState.loadCalendar()
+                await appState.submitSchedule()
+                let udKey = "background_update_count"
+                UserDefaults.standard.set(UserDefaults.standard.integer(forKey: udKey) + 1, forKey: udKey)
+                UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "background_update_last_time")
+                completionHandler(.newData)
+            }
+        } else {
+            completionHandler(.noData)
+        }
     }
 }

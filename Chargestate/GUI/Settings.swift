@@ -48,6 +48,20 @@ struct Settings: View {
             Section("Debug") {
                 ChargeStatus(teslaApi: appState.teslaApi)
                 SetCharge(teslaApi: appState.teslaApi)
+                Button(action: { appState.resetBgStats() }) {
+                    HStack(alignment: .top) {
+                        Spacer()
+                        VStack(alignment: .trailing) {
+                            Text("\(appState.backgroundCountDebug) Background Updates")
+                            if let date = appState.backgroundLastPerformed {
+                                Text("Last BG Update: \(date.formatted(.dateTime.year().month().day().hour().minute()))")
+                            } else {
+                                Text("Last BG Update: N/A")
+                            }
+                        }
+                    }
+                }
+                .foregroundColor(.secondary)
             }
         }
         .toolbar(content: {

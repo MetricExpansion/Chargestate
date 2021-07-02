@@ -117,11 +117,11 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         }
         
         calendarUpdateTask = asyncDetached(priority: .background) { [weak self] in
-            await self?.setCalendarItems(await calendarManager.getCalendarEvents(calendars: self?.enabledCalendars) ?? [])
+            await self?.loadCalendar()
             let seq = await calendarManager.getCalendarSequence();
             do {
                 for try await _ in seq {
-                    await self?.setCalendarItems(await calendarManager.getCalendarEvents(calendars: self?.enabledCalendars) ?? [])
+                    await self?.loadCalendar()
                 }
             } catch {
                 print("Calendar update loop has failed \(error)")
@@ -135,36 +135,17 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             .share()
         
         subscriptions.append(scheduleRequestStream.debounce(for: .seconds(5), scheduler: RunLoop.main).sink{ [weak self] x in
-            print("Checking to see if new schedule needs to be sent.")
             async { [weak self] in
-                let result = await self?.submitSchedule()
-                switch result {
-                case .waiting:
-                    fallthrough
-                case .ignoredDueToIdempotency:
-                    fallthrough
-                case .ignoredDueToMissingCalendarInfo:
-                    fallthrough
-                case .ignoredDueToMissingTeslaFiToken:
-                    fallthrough
-                case .ignoredDueToInvalidChargePoints:
-                    fallthrough
-                case .ignoredDueToMissingAPNSEndpoint:
-                    print("Schedule request ignored: \(String(describing: result!))")
-                case .requestFailed(let error):
-                    print("Schedule request failed: \(error)")
-                case .scheduled:
-                    print("Schedule request was accepted.")
-                case .none:
-                    print("Schedule request ignored because AppState instance is missing. This should not happen.")
-                }
-                self?.awsSubscribeStatus = result
+                await self?.submitSchedule()
             }
         })
         
         subscriptions.append(scheduleRequestStream.dropFirst().sink { [weak self] _ in
             self?.awsSubscribeStatus = .waiting
         })
+        
+        // Send update notifications on a timer so that GUI will continue to update.
+        subscriptions.append(Timer.publish(every: 600, on: RunLoop.main, in: .default).sink{ [weak self] _ in self?.objectWillChange.send() })
         
         let encoder = JSONEncoder()
         awsSubscribeStatusSubscription = self.$awsSubscribeStatus.sink { v in UserDefaults.standard.set(try? encoder.encode(v), forKey: "schedule_submission_status") }
@@ -278,7 +259,31 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             .map{ $0 }
     }
     
-    func submitSchedule() async -> ScheduleStatus {
+    func submitSchedule() async {
+        print("Checking to see if new schedule needs to be sent.")
+        let result = await self.submitSchedulePriv()
+        switch result {
+        case .waiting:
+            fallthrough
+        case .ignoredDueToIdempotency:
+            fallthrough
+        case .ignoredDueToMissingCalendarInfo:
+            fallthrough
+        case .ignoredDueToMissingTeslaFiToken:
+            fallthrough
+        case .ignoredDueToInvalidChargePoints:
+            fallthrough
+        case .ignoredDueToMissingAPNSEndpoint:
+            print("Schedule request ignored: \(String(describing: result))")
+        case .requestFailed(let error):
+            print("Schedule request failed: \(error)")
+        case .scheduled:
+            print("Schedule request was accepted.")
+        }
+        self.awsSubscribeStatus = result
+    }
+    
+    fileprivate func submitSchedulePriv() async -> ScheduleStatus {
         guard let token = teslaApi.token else { return .ignoredDueToIdempotency }
         guard let pts = self.chargeControlPoints else { return .ignoredDueToInvalidChargePoints }
         guard self.calendarItems != nil else { return .ignoredDueToMissingCalendarInfo }
@@ -296,6 +301,25 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         } catch {
             return .requestFailed(error.localizedDescription)
         }
+    }
+    
+    var backgroundCountDebug: Int {
+        UserDefaults.standard.integer(forKey: "background_update_count")
+    }
+    
+    var backgroundLastPerformed: Date? {
+        let v = UserDefaults.standard.double(forKey: "background_update_last_time")
+        if v < 1 {
+            return nil
+        } else {
+            return Date(timeIntervalSince1970: v)
+        }
+    }
+    
+    func resetBgStats() {
+        objectWillChange.send()
+        UserDefaults.standard.removeObject(forKey: "background_update_last_time")
+        UserDefaults.standard.removeObject(forKey: "background_update_count")
     }
     
     let keychain: KeychainSwift = {
