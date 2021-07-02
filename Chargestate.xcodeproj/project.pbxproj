@@ -15,6 +15,7 @@
 		AD663865267B0A7300C6A340 /* TeslaAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663864267B0A7300C6A340 /* TeslaAPI.swift */; };
 		AD663868267B0BF800C6A340 /* UtilFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD663867267B0BF800C6A340 /* UtilFunctions.swift */; };
 		AD66386C267B1DC100C6A340 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66386B267B1DC100C6A340 /* Settings.swift */; };
+		AD7C6209268FA8A30028E3AC /* AnimatedEllipses.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7C6208268FA8A30028E3AC /* AnimatedEllipses.swift */; };
 		ADA2DAB426744DB2000C7501 /* ChargestateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */; };
 		ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA2DAB526744DB2000C7501 /* ContentView.swift */; };
 		ADA2DAB826744DB3000C7501 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA2DAB726744DB3000C7501 /* Assets.xcassets */; };
@@ -35,6 +36,7 @@
 		AD663867267B0BF800C6A340 /* UtilFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilFunctions.swift; sourceTree = "<group>"; };
 		AD66386B267B1DC100C6A340 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		AD7C6206268ED5D70028E3AC /* push.apn */ = {isa = PBXFileReference; lastKnownFileType = text; path = push.apn; sourceTree = "<group>"; };
+		AD7C6208268FA8A30028E3AC /* AnimatedEllipses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedEllipses.swift; sourceTree = "<group>"; };
 		ADA2DAB026744DB2000C7501 /* Chargestate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chargestate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADA2DAB326744DB2000C7501 /* ChargestateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargestateApp.swift; sourceTree = "<group>"; };
 		ADA2DAB526744DB2000C7501 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				ADA2DAB526744DB2000C7501 /* ContentView.swift */,
+				AD7C6208268FA8A30028E3AC /* AnimatedEllipses.swift */,
 				ADA2DAC92675AD0A000C7501 /* ManualItemEditor.swift */,
 				ADA2DAD12675E306000C7501 /* Plotting.swift */,
 				AD66386B267B1DC100C6A340 /* Settings.swift */,
@@ -225,6 +228,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ADA2DAD22675E307000C7501 /* Plotting.swift in Sources */,
+				AD7C6209268FA8A30028E3AC /* AnimatedEllipses.swift in Sources */,
 				ADA2DAC726745230000C7501 /* AppState.swift in Sources */,
 				ADA2DAB626744DB2000C7501 /* ContentView.swift in Sources */,
 				ADA2DACA2675AD0A000C7501 /* ManualItemEditor.swift in Sources */,

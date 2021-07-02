@@ -178,7 +178,8 @@ struct CalendarItemView: View {
 
 struct SubmissionStatusIndicator: View {
     @Binding var submissionStatus: ScheduleStatus?
-    
+    @StateObject var animationStatus = StateManager()
+
     var body: some View {
         HStack {
             Image(systemName: "cloud")
@@ -190,6 +191,18 @@ struct SubmissionStatusIndicator: View {
                 .padding(.trailing)
                 .foregroundColor(labelData.2)
         }
+        .listRowBackground(AnimatedEllipses(
+            loadingColor: .blue,
+            finishedColor: (submissionStatus?.isFailure ?? false) ? .red : .green,
+            loading: animationStatus)
+                            .background(.background)
+                            .onChange(of: submissionStatus) { status in
+            if status?.isFinished ?? true {
+                animationStatus.setCompleted()
+            } else {
+                animationStatus.setStarted()
+            }
+        })
     }
     
     var labelData: (String, String, Color) {

@@ -436,7 +436,7 @@ extension UserDefaults {
 }
 
 // MARK: ScheduleStatus
-enum ScheduleStatus: Codable {
+enum ScheduleStatus: Codable, Equatable {
     case ignoredDueToIdempotency
     case ignoredDueToMissingCalendarInfo
     case ignoredDueToMissingTeslaFiToken
@@ -445,5 +445,47 @@ enum ScheduleStatus: Codable {
     case requestFailed(String)
     case scheduled
     case waiting
-}
+    
+    var isFailure: Bool {
+        switch self {
+        case .ignoredDueToMissingCalendarInfo:
+            fallthrough
+        case .ignoredDueToMissingTeslaFiToken:
+            fallthrough
+        case .ignoredDueToMissingAPNSEndpoint:
+            fallthrough
+        case .ignoredDueToInvalidChargePoints:
+            fallthrough
+        case .requestFailed(_):
+            return true
+        case .ignoredDueToIdempotency:
+            fallthrough
+        case .scheduled:
+            return false
+        case .waiting:
+            return false
+        }
+    }
+    
+    var isFinished: Bool {
+        switch self {
+        case .ignoredDueToMissingCalendarInfo:
+            fallthrough
+        case .ignoredDueToMissingTeslaFiToken:
+            fallthrough
+        case .ignoredDueToMissingAPNSEndpoint:
+            fallthrough
+        case .ignoredDueToInvalidChargePoints:
+            fallthrough
+        case .requestFailed(_):
+            fallthrough
+        case .ignoredDueToIdempotency:
+            fallthrough
+        case .scheduled:
+            return true
+        case .waiting:
+            return false
+        }
+    }
 
+}
