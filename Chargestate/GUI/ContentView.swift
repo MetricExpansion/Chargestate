@@ -22,6 +22,9 @@ struct ContentView: View {
                     .listRowSeparator(.hidden)
                 LineView(data: timepointsChartData(appState), style: chartStyle())
                     .frame(height: 300)
+                SettingsButton(userInfo: $appState.userConfig) {
+                    showingSettingsSheet = true
+                }
                 SubmissionStatusIndicator(submissionStatus: $appState.awsSubscribeStatus)
                 ForEach(appState.itemsGroupedByDate) { section in
                     Section("\(section.date.formatted(.dateTime.day().month(.wide).year()))") {
@@ -47,11 +50,6 @@ struct ContentView: View {
             .navigationBarItems(leading: HStack {
                 EditButton()
                     .padding(.trailing)
-                Button(action: {
-                    showingSettingsSheet = true
-                }) {
-                    Image(systemName: "gear")
-                }
             }, trailing: Button(action: {
                 showingAddSheet = true
             }) {
@@ -192,8 +190,8 @@ struct SubmissionStatusIndicator: View {
                 .foregroundColor(labelData.2)
         }
         .listRowBackground(AnimatedEllipses(
-            loadingColor: .blue,
-            finishedColor: (submissionStatus?.isFailure ?? false) ? .red : .green,
+            loadingColor: .accentColor.opacity(0.5),
+            finishedColor: (submissionStatus?.isFailure ?? false) ? .red : .green.opacity(0.8),
             loading: animationStatus)
                             .background(.background)
                             .onChange(of: submissionStatus) { status in
@@ -224,11 +222,41 @@ struct SubmissionStatusIndicator: View {
         case .scheduled:
             return ("Server Up to Date", "checkmark.circle.fill", .green)
         case .waiting:
-            return ("Waiting...", "ellipsis.rectangle.fill", .gray)
+            return ("Waiting...", "bolt.horizontal", .gray)
         }
     }
 }
     
+struct SettingsButton: View {
+    @Binding var userInfo: UserConfig
+    let action: () -> ()
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "gear")
+                    .foregroundColor(.accentColor)
+                Text("Settings")
+                    .foregroundColor(.accentColor)
+                Spacer()
+                Group {
+                    Text("\(Int(userInfo.idleChargeLevel * 100)) %")
+                        .padding(3)
+                        .foregroundColor(.orange)
+                    Image(systemName: "arrow.left.arrow.right")
+                    Text("\(Int(userInfo.travelChargeLevel * 100)) %")
+                        .foregroundColor(.green)
+                    Image(systemName: "at")
+                    Text("\(Int(userInfo.chargeRate * 100)) %/hr")
+                        .foregroundColor(.purple)
+                        .padding(.trailing)
+                }
+                .font(.footnote)
+            }
+        }
+    }
+}
+
 struct ContentView_Previews: PreviewProvider {
     static var appState = AppState.preview
     static var previews: some View {
@@ -239,3 +267,4 @@ struct ContentView_Previews: PreviewProvider {
 //        .environment(\.colorScheme, .dark)
     }
 }
+
