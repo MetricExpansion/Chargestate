@@ -22,6 +22,7 @@ struct ContentView: View {
                     .listRowSeparator(.hidden)
                 LineView(data: timepointsChartData(appState), style: chartStyle())
                     .frame(height: 300)
+                SubmissionStatusIndicator(submissionStatus: $appState.awsSubscribeStatus)
                 ForEach(appState.itemsGroupedByDate) { section in
                     Section("\(section.date.formatted(.dateTime.day().month(.wide).year()))") {
                         ForEach(section.chargeTimes) { item in
@@ -171,6 +172,46 @@ struct CalendarItemView: View {
             }
             Text(event.startDate, formatter: itemFormatter)
                 .padding(.trailing)
+        }
+    }
+}
+
+struct SubmissionStatusIndicator: View {
+    @Binding var submissionStatus: ScheduleStatus?
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "cloud")
+                .foregroundColor(.accentColor)
+            Text(labelData.0)
+                .multilineTextAlignment(.leading)
+            Spacer()
+            Image(systemName: labelData.1)
+                .padding(.trailing)
+                .foregroundColor(labelData.2)
+        }
+    }
+    
+    var labelData: (String, String, Color) {
+        switch submissionStatus {
+        case .none:
+            return ("No Status", "questionmark.circle.fill", .gray)
+        case .ignoredDueToIdempotency:
+            return ("Server Up to Date", "checkmark.circle.fill", .green)
+        case .ignoredDueToMissingCalendarInfo:
+            return ("ERROR: Failed to Get Calendar Info", "exclamationmark.circle.fill", .red)
+        case .ignoredDueToMissingTeslaFiToken:
+            return ("ERROR: No TeslaFi Token Entered", "exclamationmark.circle.fill", .yellow)
+        case .ignoredDueToMissingAPNSEndpoint:
+            return ("ERROR: Push Notification Not Enabled", "exclamationmark.circle.fill", .yellow)
+        case .ignoredDueToInvalidChargePoints:
+            return ("ERROR: Invalid Charge Settings", "exclamationmark.circle.fill", .yellow)
+        case .requestFailed(_):
+            return ("ERROR: Failed to Submit Schedule", "xmark.circle.fill", .red)
+        case .scheduled:
+            return ("Server Up to Date", "checkmark.circle.fill", .green)
+        case .waiting:
+            return ("Waiting...", "ellipsis.rectangle.fill", .gray)
         }
     }
 }

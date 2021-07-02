@@ -117,12 +117,16 @@ class AWSAPI: NSObject, Codable {
         }
     }
     
-    func schedulePushNotification(controlPoints cpIn: [ChargeControlPoint], teslafiToken: String) async throws -> ScheduleStatus {
-        guard let endpoint = self.endpoint else { return .ignored }
+    func schedulePushNotification(controlPoints cpIn: [ChargeControlPoint], teslafiToken: String) async throws -> AWSScheduleStatus {
+        #if targetEnvironment(simulator)
+        let endpoint = ""
+        #else
+        guard let endpoint = self.endpoint else { return .ignoredDueToMissingAPNSEndpoint }
+        #endif
         // Hash this input to avoid sending duplicate requests.
         let controlPoints = cpIn.filter{ $0.date > Date() }
         let hash = (controlPoints.description + teslafiToken.description).sha1()
-        if lastInvocationHash == hash { return .ignored }
+        if lastInvocationHash == hash { return .ignoredDueToIdempotency }
         
         // Set the state in case this function is called again while suspended.
         let oldLastInvocationHash = lastInvocationHash
@@ -148,6 +152,10 @@ class AWSAPI: NSObject, Codable {
         jsonEncoder.dateEncodingStrategy = .iso8601
         do {
             req?.payload = try jsonEncoder.encode(data)
+            #if targetEnvironment(simulator)
+            print("FAKE: Scheduled charges")
+            lastInvokationArn = "dummy"
+            #else
             let response = try await lambda.invoke(req!)
             print(response)
             guard
@@ -156,8 +164,9 @@ class AWSAPI: NSObject, Codable {
                 let executionArn = l2.value(forKey: "executionArn"),
                 let executionArn = executionArn as? String
             else { throw AWSAPIInternalErrors.requestFailed }
-            print("Scheduled push notification with execution ARN \(executionArn)")
+            print("Scheduled charges with execution ARN \(executionArn)")
             lastInvokationArn = executionArn
+            #endif
             return .scheduled
         } catch {
             lastInvocationHash = oldLastInvocationHash
@@ -167,8 +176,9 @@ class AWSAPI: NSObject, Codable {
     }
 }
 
-enum ScheduleStatus {
-    case ignored
+enum AWSScheduleStatus {
+    case ignoredDueToIdempotency
+    case ignoredDueToMissingAPNSEndpoint
     case scheduled
 }
 

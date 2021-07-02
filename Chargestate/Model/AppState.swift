@@ -85,6 +85,10 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             self.aws = AWSAPI()
         }
         
+        if let data = UserDefaults.standard.data(forKey: "schedule_submission_status"), let status = try? decoder.decode(ScheduleStatus.self, from: data) {
+            self.awsSubscribeStatus = status
+        }
+        
         if let data = UserDefaults.standard.data(forKey: "enabled_calendars") {
             enabledCalendars = (try? decoder.decode([String].self, from: data)) ?? []
         } else {
@@ -124,23 +128,46 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             }
         }
         
-        chargeScheduleSubscription = self.$items.combineLatest(self.$userConfig, teslaApiKeyPublisher).debounce(for: .seconds(5), scheduler: RunLoop.current).sink{ [weak self] x in
+        let scheduleRequestStream = self.$items
+            .receive(on: RunLoop.main)
+            .combineLatest(self.$userConfig, teslaApiKeyPublisher)
+            .drop(while: { _ in self.calendarItems == nil })
+            .share()
+        
+        subscriptions.append(scheduleRequestStream.debounce(for: .seconds(5), scheduler: RunLoop.main).sink{ [weak self] x in
             print("Checking to see if new schedule needs to be sent.")
             async { [weak self] in
-                do {
-                    switch try await self?.submitSchedule() {
-                    case .ignored:
-                        print("Schedule request ignored.")
-                    case .scheduled:
-                        print("Schedule request was accepted.")
-                    case .none:
-                        print("Schedule request ignored because AppState instance is missing. This should not happen.")
-                    }
-                } catch {
-                    print("Failed to schedule due to \(error).")
+                let result = await self?.submitSchedule()
+                switch result {
+                case .waiting:
+                    fallthrough
+                case .ignoredDueToIdempotency:
+                    fallthrough
+                case .ignoredDueToMissingCalendarInfo:
+                    fallthrough
+                case .ignoredDueToMissingTeslaFiToken:
+                    fallthrough
+                case .ignoredDueToInvalidChargePoints:
+                    fallthrough
+                case .ignoredDueToMissingAPNSEndpoint:
+                    print("Schedule request ignored: \(String(describing: result!))")
+                case .requestFailed(let error):
+                    print("Schedule request failed: \(error)")
+                case .scheduled:
+                    print("Schedule request was accepted.")
+                case .none:
+                    print("Schedule request ignored because AppState instance is missing. This should not happen.")
                 }
+                self?.awsSubscribeStatus = result
             }
-        }
+        })
+        
+        subscriptions.append(scheduleRequestStream.dropFirst().sink { [weak self] _ in
+            self?.awsSubscribeStatus = .waiting
+        })
+        
+        let encoder = JSONEncoder()
+        awsSubscribeStatusSubscription = self.$awsSubscribeStatus.sink { v in UserDefaults.standard.set(try? encoder.encode(v), forKey: "schedule_submission_status") }
 
         updateItems()
         
@@ -251,11 +278,24 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             .map{ $0 }
     }
     
-    func submitSchedule() async throws -> ScheduleStatus {
-        guard let token = teslaApi.token, let pts = self.chargeControlPoints, self.calendarItems != nil else { return .ignored }
-        let result =  try await aws.schedulePushNotification(controlPoints: pts, teslafiToken: token)
-        self.saveData()
-        return result
+    func submitSchedule() async -> ScheduleStatus {
+        guard let token = teslaApi.token else { return .ignoredDueToIdempotency }
+        guard let pts = self.chargeControlPoints else { return .ignoredDueToInvalidChargePoints }
+        guard self.calendarItems != nil else { return .ignoredDueToMissingCalendarInfo }
+        do {
+            let result = try await aws.schedulePushNotification(controlPoints: pts, teslafiToken: token)
+            self.saveData()
+            switch result {
+            case .ignoredDueToIdempotency:
+                return .ignoredDueToIdempotency
+            case .ignoredDueToMissingAPNSEndpoint:
+                return .ignoredDueToMissingAPNSEndpoint
+            case .scheduled:
+                return .scheduled
+            }
+        } catch {
+            return .requestFailed(error.localizedDescription)
+        }
     }
     
     let keychain: KeychainSwift = {
@@ -275,16 +315,17 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     @Published var items: [ChargeTime] = []
     var calendarItems: [EKEvent]?
     var manualItems: [Item] = []
-    var chargeScheduleSubscription: AnyCancellable?
     
+    var chargeScheduleSubscription: AnyCancellable?
     var aws: AWSAPI
-//    var awsEndpointSubscription: AnyCancellable?
-//    var awsPushInfoSubscription: AnyCancellable?
+    @Published var awsSubscribeStatus: ScheduleStatus?
+    var awsSubscribeStatusSubscription: AnyCancellable?
 
     var fetchReqCont: NSFetchedResultsController<Item>
     
     /// Helper stuff
     @Published var userConfig: UserConfig
+    var subscriptions: [AnyCancellable] = []
     var userConfigSubscription: AnyCancellable?
 }
 
@@ -369,3 +410,16 @@ extension UserDefaults {
         if v == 0 { return nil } else { return v }
     }
 }
+
+// MARK: ScheduleStatus
+enum ScheduleStatus: Codable {
+    case ignoredDueToIdempotency
+    case ignoredDueToMissingCalendarInfo
+    case ignoredDueToMissingTeslaFiToken
+    case ignoredDueToMissingAPNSEndpoint
+    case ignoredDueToInvalidChargePoints
+    case requestFailed(String)
+    case scheduled
+    case waiting
+}
+
