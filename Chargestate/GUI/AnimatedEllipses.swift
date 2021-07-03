@@ -87,9 +87,13 @@ struct AnimatedEllipses: View {
 
             }
         case .finished:
-            animation = Animation.easeOut(duration: 0.3)
+            animation = Animation.easeOut(duration: 2.0)
             withAnimation {
                 xPos = 0.5
+            }
+            animation = Animation.easeOut(duration: 0.15)
+            withAnimation {
+                // xPos = 0.5
                 barWidth = 1.0
                 gradOpacity = 0.0
                 solidOpacity = 1.0
