@@ -60,15 +60,7 @@ struct AnimatedEllipses: View {
     }
     
     func barWidth(viewWidth: CGFloat) -> CGFloat {
-        switch loading.loading {
-        case .loading:
-            return (viewWidth + 2 * (viewWidth * barWidth)) * xPos - (viewWidth * barWidth)
-        case .idle:
-            fallthrough
-        case .finished:
-            return (viewWidth * xPos)
-        }
-
+        return (viewWidth + 2 * (viewWidth * barWidth)) * xPos - (viewWidth * barWidth)
     }
     
     func handleStateChange(_ state: AnimatedEllipsesState) {
