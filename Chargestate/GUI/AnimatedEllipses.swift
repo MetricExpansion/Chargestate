@@ -25,12 +25,14 @@ struct AnimatedEllipses: View {
                     Rectangle()
                         .fill(LinearGradient(colors: [loadingColor.opacity(0.0) ,loadingColor, loadingColor.opacity(0.0)], startPoint: .leading, endPoint: .trailing))
                         .opacity(gradOpacity)
-                        .animation(animation)
                     Rectangle()
                         .foregroundColor(finishedColor)
                         .opacity(solidOpacity)
-                        .animation(animation)
                 }
+                .animation(animation, value: xPos)
+                .animation(animation, value: barWidth)
+                .animation(animation, value: gradOpacity)
+                .animation(animation, value: solidOpacity)
                 .frame(width: geo.size.width * barWidth)
                 .position(x: barWidth(viewWidth: geo.size.width), y: geo.size.height / 2)
                 .onAppear {

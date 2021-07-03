@@ -83,6 +83,8 @@ struct Settings: View {
 }
 
 struct ProgressBarBackground: View {
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
+
     init(frac: Double, scale: Double = 1.0, color: Color = .primary) {
         self.frac = frac / scale
         self.color = color
@@ -94,7 +96,7 @@ struct ProgressBarBackground: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .foregroundColor(Color(UIColor.systemBackground))
+                    .foregroundColor(Color.listBgForScheme(colorScheme))
                 Rectangle()
                     .frame(width: (frac).clamped(to: 0.0...1.0) * geo.size.width, height: geo.size.height)
                     .foregroundColor(color)

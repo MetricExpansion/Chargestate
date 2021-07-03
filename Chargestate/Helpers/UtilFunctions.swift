@@ -26,3 +26,16 @@ extension Comparable {
         return min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
+
+extension Color {
+    static func listBgForScheme(_ scheme: ColorScheme) -> Color {
+        switch scheme {
+        case .light:
+            return Color.white
+        case .dark:
+            return Color(red: 28 / 255.0, green: 28 / 255.0, blue: 30 / 255.0)
+        @unknown default:
+            return Color.white
+        }
+    }
+}

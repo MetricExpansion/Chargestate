@@ -45,6 +45,26 @@ struct ContentView: View {
                         }
                     }
                 }
+                Text("--")
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack {
+                    Button(action: {
+                        showingAddSheet = true
+                    }) {
+                        HStack {
+                            Label("Add Charge Event", systemImage: "plus")
+                        }
+                        .font(Font.headline.weight(.heavy))
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .controlProminence(.increased)
+                    .padding()
+                    .shadow(radius: 0.0)
+                }
+                .shadow(radius: 5.0)
             }
             .animation(appState.items.isEmpty ? .none : .default, value: appState.items)
             .navigationBarItems(leading: HStack {
@@ -57,7 +77,7 @@ struct ContentView: View {
                 Text("Add")
             }
             .buttonStyle(.bordered))
-        .navigationTitle("Chargestate")
+            .navigationTitle("Chargestate")
         }
         .sheet(isPresented: $showingAddSheet, onDismiss: {}) {
             NavigationView {
@@ -175,6 +195,7 @@ struct CalendarItemView: View {
 }
 
 struct SubmissionStatusIndicator: View {
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Binding var submissionStatus: ScheduleStatus?
     @StateObject var animationStatus = StateManager()
 
@@ -193,7 +214,7 @@ struct SubmissionStatusIndicator: View {
             loadingColor: .accentColor.opacity(0.5),
             finishedColor: (submissionStatus?.isFailure ?? false) ? .red : .green.opacity(0.8),
             loading: animationStatus)
-                            .background(.background)
+                            .background(Color.listBgForScheme(colorScheme))
                             .onChange(of: submissionStatus) { status in
             if status?.isFinished ?? true {
                 animationStatus.setCompleted()
@@ -264,6 +285,7 @@ struct ContentView_Previews: PreviewProvider {
             ContentView()
         }
         .environmentObject(appState)
+        .colorScheme(.dark)
 //        .environment(\.colorScheme, .dark)
     }
 }
