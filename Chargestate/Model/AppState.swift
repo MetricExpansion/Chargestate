@@ -145,7 +145,10 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         })
         
         // Send update notifications on a timer so that GUI will continue to update.
-        subscriptions.append(Timer.publish(every: 600, on: RunLoop.main, in: .default).sink{ [weak self] _ in self?.objectWillChange.send() })
+        subscriptions.append(Timer.publish(every: 600, on: RunLoop.main, in: .default).sink{ [weak self] _ in
+            self?.cleanupOldManualItems()
+            self?.objectWillChange.send()
+        })
         
         let encoder = JSONEncoder()
         awsSubscribeStatusSubscription = self.$awsSubscribeStatus.sink { v in UserDefaults.standard.set(try? encoder.encode(v), forKey: "schedule_submission_status") }
@@ -228,12 +231,6 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         var items: [ChargeTime] = (calendarItems ?? []).map{ .calendar($0) } + manualItems.map{ .manual($0) }
         items.sort{ $0.date < $1.date }
         self.items = items
-    }
-    
-    var itemsGroupedByDate: [ChargeTimeSection] {
-        let dict = Dictionary(grouping: items, by: { Calendar.current.dateComponents([.day, .month, .year], from: $0.date) })
-        let list = dict.map{ k, v in ChargeTimeSection(day: k, chargeTimes: v)}.sorted{ $0.chargeTimes[0].date < $1.chargeTimes[0].date }
-        return list
     }
     
     var chargeControlRanges: [DateInterval]? {
@@ -400,20 +397,6 @@ extension ChargeTime: Identifiable {
             return item.calendarItemIdentifier
         }
     }
-}
-
-// MARK: ChargeTimeSection
-
-struct ChargeTimeSection: Equatable, Identifiable {
-    let day: DateComponents
-    let chargeTimes: [ChargeTime]
-    var id: DateComponents {
-        return day
-    }
-    var date: Date {
-        return Calendar.current.date(from: day)!
-    }
-
 }
 
 // MARK: UserConfig

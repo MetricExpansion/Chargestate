@@ -145,26 +145,39 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
                     "Next": "Send Request to TeslaFi",
                     "TimestampPath": "$.TriggerTime"
                   },
-                  "Send Request to TeslaFi": {
+                                    "Send Request to TeslaFi": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
                     "OutputPath": "$.Payload",
                     "Parameters": {
                       "Payload.$": "$",
-                      "FunctionName": "${aws_lambda_function.teslafi_lambda.arn}:$LATEST"
+                      "FunctionName": "arn:aws:lambda:us-west-2:017451542414:function:ChargestateTeslafiLambda:$LATEST"
                     },
                     "Retry": [
                       {
                         "ErrorEquals": [
                           "Lambda.ServiceException",
                           "Lambda.AWSLambdaException",
-                          "Lambda.SdkClientException"
+                          "Lambda.SdkClientException",
+                          "States.TaskFailed"
                         ],
                         "IntervalSeconds": 2,
                         "MaxAttempts": 6,
                         "BackoffRate": 2
                       }
                     ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed"
+                        ],
+                        "Next": "Pass"
+                      }
+                    ],
+                    "Next": "Pass"
+                  },
+                  "Pass": {
+                    "Type": "Pass",
                     "End": true
                   }
                 }

@@ -26,20 +26,23 @@ struct ContentView: View {
                     showingSettingsSheet = true
                 }
                 SubmissionStatusIndicator(submissionStatus: $appState.awsSubscribeStatus)
-                ForEach(appState.itemsGroupedByDate) { section in
+                ForEach(TimelineItemSection.groupedByDateFromAppState(appState: appState, adjustForDisplay: true)) { section in
                     Section("\(section.date.formatted(.dateTime.day().month(.wide).year()))") {
-                        ForEach(section.chargeTimes) { item in
+                        ForEach(section.items) { item in
                             switch item {
                             case .manual(let item):
                                 ManualItemView(item: item)
                             case .calendar(let item):
                                 CalendarItemView(event: item)
                                     .deleteDisabled(true)
+                            case .controlPoint(let item):
+                                ChargeControlPointItemView(item: item)
+                                    .deleteDisabled(true)
                             }
                         }
                         .onDelete { indexSet in
                             let itemsToDelete = indexSet
-                                .map { section.chargeTimes[$0] }
+                                .map { section.items[$0] }
                                 .compactMap{ $0.manualItem() }
                             deleteItems(items: itemsToDelete)
                         }
@@ -70,13 +73,7 @@ struct ContentView: View {
             .navigationBarItems(leading: HStack {
                 EditButton()
                     .padding(.trailing)
-            }, trailing: Button(action: {
-                showingAddSheet = true
-            }) {
-                Image(systemName: "plus")
-                Text("Add")
-            }
-            .buttonStyle(.bordered))
+            })
             .navigationTitle("Chargestate")
         }
         .sheet(isPresented: $showingAddSheet, onDismiss: {}) {
@@ -102,7 +99,6 @@ struct ContentView: View {
         .onAppear{
             async {
                 await appState.aws.preparePushNotifications()
-//                await appState.aws.schedulePushNotification(atDate: Date().addingTimeInterval(15))
             }
         }
     }
@@ -169,6 +165,22 @@ struct ManualItemView: View {
         }
     }
 }
+
+struct ChargeControlPointItemView: View {
+    let item: ChargeControlPoint
+    var body: some View {
+        HStack {
+            Image(systemName: item.charging ? "arrow.up.forward" : "arrow.down.forward")
+                .foregroundColor(item.charging ? .green : .orange)
+            Text(item.charging ? "Charge Limit Raises at..." : "Charge Limit Lowers at...")
+            Spacer()
+            Text(item.date , formatter: itemFormatter)
+                .padding(.trailing)
+        }
+        .foregroundColor(.secondary)
+    }
+}
+
 
 struct CalendarItemView: View {
     let event: EKEvent
@@ -285,7 +297,7 @@ struct ContentView_Previews: PreviewProvider {
             ContentView()
         }
         .environmentObject(appState)
-        .colorScheme(.dark)
+//        .colorScheme(.dark)
 //        .environment(\.colorScheme, .dark)
     }
 }
