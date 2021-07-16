@@ -145,7 +145,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         })
         
         // Send update notifications on a timer so that GUI will continue to update.
-        subscriptions.append(Timer.publish(every: 600, on: RunLoop.main, in: .default).sink{ [weak self] _ in
+        subscriptions.append(Timer.publish(every: 300, on: RunLoop.main, in: .default).sink{ [weak self] _ in
             self?.cleanupOldManualItems()
             self?.objectWillChange.send()
         })

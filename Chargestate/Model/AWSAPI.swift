@@ -145,7 +145,14 @@ class AWSAPI: NSObject, Codable {
                 TriggerTime: Date(),
                 TargetEndpoint: endpoint,
                 Message: "{\"aps\":{\"content-available\":1}}",
-                Events: controlPoints.map{ pt in .init(TriggerTime: pt.date, Token: teslafiToken, Percent: Int(100 * pt.chargeLimit)) }
+                Events: controlPoints.map{ pt in .init(
+                    TriggerTime: pt.date,
+                    Token: teslafiToken,
+                    NotificationEndpoint: endpoint,
+                    NotificationMessageSuccess: "Charge limit \(pt.charging ? "increased" : "decreased") to \(Int(100 * pt.chargeLimit))%",
+                    NotificationMessageFailure: "Failed to \(pt.charging ? "increase" : "decrease") charging limit!",
+                    Percent: Int(100 * pt.chargeLimit)
+                ) }
             )
         )
         let jsonEncoder = JSONEncoder()
@@ -193,6 +200,9 @@ enum AWSAPIInternalErrors: Error {
 struct SFNEvent: Codable {
     let TriggerTime: Date
     let Token: String
+    let NotificationEndpoint: String
+    let NotificationMessageSuccess: String
+    let NotificationMessageFailure: String
     let Percent: Int
 }
 

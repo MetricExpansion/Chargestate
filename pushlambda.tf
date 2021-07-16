@@ -145,14 +145,14 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
                     "Next": "Send Request to TeslaFi",
                     "TimestampPath": "$.TriggerTime"
                   },
-                                    "Send Request to TeslaFi": {
+                  "Send Request to TeslaFi": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
-                    "OutputPath": "$.Payload",
                     "Parameters": {
                       "Payload.$": "$",
                       "FunctionName": "arn:aws:lambda:us-west-2:017451542414:function:ChargestateTeslafiLambda:$LATEST"
                     },
+                    "ResultPath": null,
                     "Retry": [
                       {
                         "ErrorEquals": [
@@ -171,13 +171,30 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
                         "ErrorEquals": [
                           "States.TaskFailed"
                         ],
-                        "Next": "Pass"
+                        "Next": "Notify Failure"
                       }
                     ],
-                    "Next": "Pass"
+                    "Next": "Notify Success",
+                    "ResultPath": null
                   },
-                  "Pass": {
-                    "Type": "Pass",
+                  "Notify Failure": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::sns:publish",
+                    "Parameters": {
+                      "Message.$": "$.NotificationMessageFailure",
+                      "TargetArn.$": "$.NotificationEndpoint",
+                      "MessageAttributes": {}
+                    },
+                    "End": true
+                  },
+                  "Notify Success": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::sns:publish",
+                    "Parameters": {
+                      "Message.$": "$.NotificationMessageSuccess",
+                      "TargetArn.$": "$.NotificationEndpoint",
+                      "MessageAttributes": {}
+                    },
                     "End": true
                   }
                 }

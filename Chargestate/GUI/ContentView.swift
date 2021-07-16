@@ -171,7 +171,14 @@ struct ChargeControlPointItemView: View {
     var body: some View {
         HStack {
             Image(systemName: item.charging ? "arrow.up.forward" : "arrow.down.forward")
-                .foregroundColor(item.charging ? .green : .orange)
+                .opacity(0)
+                .overlay(VStack {
+                    Image(systemName: item.charging ? "arrow.up.forward" : "arrow.down.forward")
+                        .foregroundColor(item.charging ? .green : .orange)
+                    Text("\(Int(100 * item.chargeLimit))%")
+                        .font(.system(size: 7, weight: .regular, design: .default))
+                        .foregroundColor(item.charging ? .green : .orange)
+                })
             Text(item.charging ? "Charge Limit Raises at..." : "Charge Limit Lowers at...")
             Spacer()
             Text(item.date , formatter: itemFormatter)
