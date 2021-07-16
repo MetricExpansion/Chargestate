@@ -146,8 +146,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
         
         // Send update notifications on a timer so that GUI will continue to update.
         subscriptions.append(Timer.publish(every: 300, on: RunLoop.main, in: .default).sink{ [weak self] _ in
-            self?.cleanupOldManualItems()
-            self?.objectWillChange.send()
+            self?.periodicRefresh()
         })
         
         let encoder = JSONEncoder()
@@ -160,6 +159,11 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     
     deinit {
         calendarUpdateTask?.cancel()
+    }
+    
+    func periodicRefresh() {
+        cleanupOldManualItems()
+        objectWillChange.send()
     }
     
     func saveData() {
@@ -179,7 +183,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     func cleanupOldManualItems() {
         let fetchReq = NSFetchRequest<Item>(entityName: "Item")
         fetchReq.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
-        let cutoff = Date().addingTimeInterval(-60*60)
+        let cutoff = Date() //.addingTimeInterval(-60*60)
         fetchReq.predicate = NSPredicate(format: "timestamp < %@", cutoff as NSDate)
         let fetchReqCont = NSFetchedResultsController(
             fetchRequest: fetchReq,
@@ -191,6 +195,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
                 container.viewContext.delete(object)
             }
             try container.viewContext.save()
+            updateItems()
         } catch {
             print("Cannot cleanup old items \(error)")
         }
@@ -228,7 +233,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     
     /// Algorithm stuff
     func updateItems() {
-        var items: [ChargeTime] = (calendarItems ?? []).map{ .calendar($0) } + manualItems.map{ .manual($0) }
+        var items: [ChargeTime] = (calendarItems ?? []).map{ .calendar($0) } + manualItems.filter{ $0.timestamp != nil }.map{ .manual($0) }
         items.sort{ $0.date < $1.date }
         self.items = items
     }

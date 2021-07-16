@@ -26,6 +26,8 @@ struct ChargestateApp: App {
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .background || newPhase == .inactive {
                 appDelegate.saveData()
+            } else if newPhase == .active {
+                appDelegate.appState.periodicRefresh()
             }
         }
     }
