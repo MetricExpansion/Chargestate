@@ -116,9 +116,9 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             UserDefaults.standard.set(v.travelChargeLevel, forKey: "userConfig_travelChargeLevel")
         }
         
-        calendarUpdateTask = asyncDetached(priority: .background) { [weak self] in
+        calendarUpdateTask = Task.detached(priority: .background) { [weak self] in
             await self?.loadCalendar()
-            let seq = await calendarManager.getCalendarSequence();
+            guard let seq = await self?.calendarManager.getCalendarSequence() else { return };
             do {
                 for try await _ in seq {
                     await self?.loadCalendar()
@@ -135,7 +135,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
             .share()
         
         subscriptions.append(scheduleRequestStream.debounce(for: .seconds(5), scheduler: RunLoop.main).sink{ [weak self] x in
-            async { [weak self] in
+            Task { [weak self] in
                 await self?.submitSchedule()
             }
         })
@@ -203,7 +203,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     
     /// Core Data Store stuff
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        async {
+        Task {
             manualItems = fetchReqCont.fetchedObjects ?? []
             updateItems()
         }
@@ -211,7 +211,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
 
 
     func add() {
-        async {
+        Task {
             await container.viewContext.perform {
                 let newItem = Item(context: self.container.viewContext)
                 let maxDiff = 24*60*60*14.0
@@ -222,7 +222,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     }
     
     func add(date: Date) {
-        async {
+        Task {
             await container.viewContext.perform {
                 let newItem = Item(context: self.container.viewContext)
                 newItem.timestamp = date
@@ -332,7 +332,7 @@ class AppState: NSObject, ObservableObject, NSFetchedResultsControllerDelegate {
     
     let container: NSPersistentContainer
     var calendarManager: CalendarManager
-    var calendarUpdateTask: Task.Handle<(), Never>?
+    var calendarUpdateTask: Task<(), Never>?
     @Published var enabledCalendars: [String]
     
     let teslaApi: TeslaSession

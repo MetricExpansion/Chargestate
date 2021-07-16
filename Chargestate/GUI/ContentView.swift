@@ -97,7 +97,7 @@ struct ContentView: View {
             .accentColor(.green)
         }
         .onAppear{
-            async {
+            Task {
                 await appState.aws.preparePushNotifications()
             }
         }

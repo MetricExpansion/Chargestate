@@ -114,7 +114,7 @@ struct ChargeStatus: View {
             Text("Current Target SOC")
             Spacer()
             Text(teslaApi.currentSelectedSoc?.formatted(.percent) ?? "N/A")
-            Button(action: { async { try? await teslaApi.getVehicleState() } }) {
+            Button(action: { Task { try? await teslaApi.getVehicleState() } }) {
                 Image(systemName: "arrow.clockwise")
             }
             .disabled(teslaApi.requestInFlight)
@@ -134,7 +134,7 @@ struct SetCharge: View {
             }
             .listRowBackground(ProgressBarBackground(frac: chargeSetting, color: .blue))
             Button(action: {
-                async {
+                Task {
                     do {
                         try await teslaApi.setChargeLimit(percent: Int(100 * chargeSetting))
                     } catch {

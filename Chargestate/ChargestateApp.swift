@@ -53,7 +53,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
         print("Device Token: \(token)")
-        async { await appState.aws.acceptToken(token: token) }
+        Task { await appState.aws.acceptToken(token: token) }
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -75,7 +75,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             let ca = aps["content-available"] as? Int,
             ca == 1 {
             print("Got a background notification")
-            async {
+            Task {
                 await appState.loadCalendar()
                 await appState.submitSchedule()
                 let udKey = "background_update_count"
