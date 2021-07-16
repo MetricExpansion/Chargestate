@@ -16,66 +16,45 @@ struct ContentView: View {
     @State var showingSettingsSheet: Bool = false
     
     var body: some View {
-        VStack {
-            List {
-                Label("Charge Projection", systemImage: "bolt.fill.batteryblock.fill")
-                    .listRowSeparator(.hidden)
-                LineView(data: timepointsChartData(appState), style: chartStyle())
-                    .frame(height: 300)
-                SettingsButton(userInfo: $appState.userConfig) {
-                    showingSettingsSheet = true
-                }
-                SubmissionStatusIndicator(submissionStatus: $appState.awsSubscribeStatus)
-                ForEach(TimelineItemSection.groupedByDateFromAppState(appState: appState, adjustForDisplay: true)) { section in
-                    Section("\(section.date.formatted(.dateTime.day().month(.wide).year()))") {
-                        ForEach(section.items) { item in
-                            switch item {
-                            case .manual(let item):
-                                ManualItemView(item: item)
-                            case .calendar(let item):
-                                CalendarItemView(event: item)
-                                    .deleteDisabled(true)
-                            case .controlPoint(let item):
-                                ChargeControlPointItemView(item: item)
-                                    .deleteDisabled(true)
-                            }
-                        }
-                        .onDelete { indexSet in
-                            let itemsToDelete = indexSet
-                                .map { section.items[$0] }
-                                .compactMap{ $0.manualItem() }
-                            deleteItems(items: itemsToDelete)
+        List {
+            Label("Charge Projection", systemImage: "bolt.fill.batteryblock.fill")
+                .listRowSeparator(.hidden)
+            LineView(data: timepointsChartData(appState), style: chartStyle())
+                .frame(height: 300)
+            SettingsButton(userInfo: $appState.userConfig) {
+                showingSettingsSheet = true
+            }
+            SubmissionStatusIndicator(submissionStatus: $appState.awsSubscribeStatus)
+            ForEach(TimelineItemSection.groupedByDateFromAppState(appState: appState, adjustForDisplay: true)) { section in
+                Section("\(section.date.formatted(.dateTime.day().month(.wide).year()))") {
+                    ForEach(section.items) { item in
+                        switch item {
+                        case .manual(let item):
+                            ManualItemView(item: item)
+                        case .calendar(let item):
+                            CalendarItemView(event: item)
+                                .deleteDisabled(true)
+                        case .controlPoint(let item):
+                            ChargeControlPointItemView(item: item)
+                                .deleteDisabled(true)
                         }
                     }
-                }
-                Text("--")
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack {
-                    Button(action: {
-                        showingAddSheet = true
-                    }) {
-                        HStack {
-                            Label("Add Charge Event", systemImage: "plus")
-                        }
-                        .font(Font.headline.weight(.heavy))
-                        .frame(maxWidth: .infinity)
+                    .onDelete { indexSet in
+                        let itemsToDelete = indexSet
+                            .map { section.items[$0] }
+                            .compactMap{ $0.manualItem() }
+                        deleteItems(items: itemsToDelete)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .controlProminence(.increased)
-                    .padding()
-                    .shadow(radius: 0.0)
                 }
-                .shadow(radius: 5.0)
             }
-            .animation(appState.items.isEmpty ? .none : .default, value: appState.items)
-            .navigationBarItems(leading: HStack {
-                EditButton()
-                    .padding(.trailing)
-            })
-            .navigationTitle("Chargestate")
+            Text("--")
         }
+        .animation(appState.items.isEmpty ? .none : .default, value: appState.items)
+        .navigationBarItems(leading: HStack {
+            EditButton()
+                .padding(.trailing)
+        })
+        .navigationTitle("Chargestate")
         .sheet(isPresented: $showingAddSheet, onDismiss: {}) {
             NavigationView {
                 ManualItemEditor(date: Date(), showing: $showingAddSheet) { date in
@@ -100,6 +79,25 @@ struct ContentView: View {
             Task {
                 await appState.aws.preparePushNotifications()
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack {
+                Button(action: {
+                    showingAddSheet = true
+                }) {
+                    HStack {
+                        Label("Add Charge Event", systemImage: "plus")
+                    }
+                    .font(Font.headline.weight(.heavy))
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .controlProminence(.increased)
+                .padding()
+                .shadow(radius: 0.0)
+            }
+            .shadow(radius: 5.0)
         }
     }
 
